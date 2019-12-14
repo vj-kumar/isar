@@ -8,24 +8,31 @@ inherit repository
 deb_dl_dir_import() {
     export pc="${DEBDIR}/${DISTRO}/"
     export rootfs="${1}"
+    rm -f "${T}"/deb_dl_dir_import.stamp
+    touch "${T}"/deb_dl_dir_import.stamp
     [ ! -d "${pc}" ] && return 0
+    [ ! -d "${rootfs}"/var/cache/apt/archives/ ] && return 0
     flock -s "${pc}".lock -c ' \
         sudo find "${pc}" -type f -iname '*\.deb' -exec \
-            cp -f --no-preserve=owner -t "${rootfs}"/var/cache/apt/archives/ '{}' +
+            cp -n --no-preserve=owner -t "${rootfs}"/var/cache/apt/archives/ '{}' +
     '
 }
 
 deb_dl_dir_export() {
     export pc="${DEBDIR}/${DISTRO}/"
     export rootfs="${1}"
+    export T
     mkdir -p "${pc}"
     flock "${pc}".lock -c ' \
-        find "${rootfs}"/var/cache/apt/archives/ -type f -iname '*\.deb' |\
+        find "${rootfs}"/var/cache/apt/archives/ \
+	    -cnewer "${T}"/deb_dl_dir_import.stamp \
+	    -type f -iname '*\.deb' |\
         while read p; do
              repo_contains_package "${REPO_ISAR_DIR}"/"${DISTRO}" "${p}" && \
                  continue
-             sudo cp -f "${p}" "${pc}"
+             sudo cp -n "${p}" "${pc}"
         done
         sudo chown -R $(id -u):$(id -g) "${pc}"
     '
+    rm -f "${T}"/deb_dl_dir_import.stamp
 }
