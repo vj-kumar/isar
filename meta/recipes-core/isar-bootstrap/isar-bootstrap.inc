@@ -28,6 +28,8 @@ DISTRO_BOOTSTRAP_BASE_PACKAGES_append_gnupg = ",gnupg"
 DISTRO_BOOTSTRAP_BASE_PACKAGES_append_https-support = ",apt-transport-https,ca-certificates"
 HOST_DISTRO_APT_SOURCES += "conf/distro/${HOST_DISTRO}.list"
 
+inherit deb-dl-dir
+
 python () {
     distro_bootstrap_keys = (d.getVar("DISTRO_BOOTSTRAP_KEYS") or "").split()
 
@@ -219,6 +221,7 @@ do_bootstrap[vardeps] += "DISTRO_APT_PREMIRRORS"
 do_bootstrap[dirs] = "${DEPLOY_DIR_BOOTSTRAP}"
 
 isar_bootstrap() {
+    deb_dl_dir_import "${ROOTFSDIR}"
     IS_HOST=""
     while true; do
         case "$1" in
@@ -335,6 +338,7 @@ isar_bootstrap() {
             ln -Tfsr "${ROOTFSDIR}" "${DEPLOY_ISAR_BOOTSTRAP}"
         fi
 EOSUDO
+    deb_dl_dir_export "${ROOTFSDIR}"
 }
 
 CLEANFUNCS = "clean_deploy"
