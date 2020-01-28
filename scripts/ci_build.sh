@@ -133,13 +133,15 @@ if [ ! -d "$BUILD_DIR" ]; then
 fi
 source isar-init-build-env "$BUILD_DIR"
 
+ROOTDIR=`dirname ${SCRIPTSDIR}`
+
 if [ -n "$CROSS_BUILD" ]; then
     sed -i -e 's/ISAR_CROSS_COMPILE ?= "0"/ISAR_CROSS_COMPILE ?= "1"/g' conf/local.conf
 fi
 
 if [ -n "$REPRO_BUILD" ]; then
-    ISAR_TESTSUITE_GPG_PUB_KEY_FILE="$ISARROOT/testsuite/base-apt/test_pub.key"
-    ISAR_TESTSUITE_GPG_PRIV_KEY_FILE="$ISARROOT/testsuite/base-apt/test_priv.key"
+    ISAR_TESTSUITE_GPG_PUB_KEY_FILE="$ROOTDIR/testsuite/base-apt/test_pub.key"
+    ISAR_TESTSUITE_GPG_PRIV_KEY_FILE="$ROOTDIR/testsuite/base-apt/test_priv.key"
     export GNUPGHOME=$(mktemp -d)
     gpg --import $ISAR_TESTSUITE_GPG_PUB_KEY_FILE $ISAR_TESTSUITE_GPG_PRIV_KEY_FILE
 
@@ -188,9 +190,9 @@ if [ -z "$FAST_BUILD" ]; then
     bitbake $BB_ARGS $TARGETS_SET
 fi
 
-cp -a "${ISARROOT}/meta/classes/dpkg-base.bbclass" "${ISARROOT}/meta/classes/dpkg-base.bbclass.ci-backup"
-echo -e "do_fetch_append() {\n\n}" >> "${ISARROOT}/meta/classes/dpkg-base.bbclass"
+cp -a "${ROOTDIR}/meta/classes/dpkg-base.bbclass" "${ROOTDIR}/meta/classes/dpkg-base.bbclass.ci-backup"
+echo -e "do_fetch_append() {\n\n}" >> "${ROOTDIR}/meta/classes/dpkg-base.bbclass"
 
 bitbake $BB_ARGS mc:qemuamd64-stretch:isar-image-base
 
-mv "${ISARROOT}/meta/classes/dpkg-base.bbclass.ci-backup" "${ISARROOT}/meta/classes/dpkg-base.bbclass"
+mv "${ROOTDIR}/meta/classes/dpkg-base.bbclass.ci-backup" "${ROOTDIR}/meta/classes/dpkg-base.bbclass"

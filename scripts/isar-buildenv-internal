@@ -74,5 +74,8 @@ export PATH
 BBPATH="${BUILDDIR}"
 export BBPATH
 
-BB_ENV_EXTRAWHITE="BUILDDIR ISARROOT http_proxy https_proxy ftp_proxy no_proxy GNUPGHOME"
+SCRIPTSDIR="${ISARROOT}/scripts"
+export SCRIPTSDIR
+
+BB_ENV_EXTRAWHITE="BUILDDIR SCRIPTSDIR http_proxy https_proxy ftp_proxy no_proxy GNUPGHOME"
 export BB_ENV_EXTRAWHITE
