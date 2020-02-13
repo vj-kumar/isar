@@ -201,6 +201,52 @@ rootfs_generate_manifest () {
         ${ROOTFS_MANIFEST_DEPLOY_DIR}/"${PF}".manifest
 }
 
+ROOTFS_POSTPROCESS_COMMAND += "${@bb.utils.contains('ROOTFS_FEATURES', 'cache-deb-src', 'cache_deb_src', '', d)}"
+cache_deb_src() {
+    if [ "${ISAR_USE_CACHED_BASE_REPO}" = "1" ]; then
+        return 0
+    fi
+
+    mkdir -p "${DEBSRCDIR}"/"${DISTRO}"
+
+    sudo -s <<'EOSUDO'
+    cp -L /etc/resolv.conf '${ROOTFSDIR}/etc'
+    mkdir -p '${ROOTFSDIR}/deb-src'
+    mountpoint -q '${ROOTFSDIR}/deb-src' || \
+    mount --bind '${DEBSRCDIR}' '${ROOTFSDIR}/deb-src'
+EOSUDO
+
+    sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get update
+
+    find "${DEBDIR}"/"${DISTRO}" -name '*\.deb' | while read package; do
+        local src="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
+        # If the binary package version and source package version are different, then the
+        # source package version will be present inside "()" of the Source field.
+        local version="$( echo "$src" | cut -sd "(" -f2 | cut -sd ")" -f1 )"
+        if [ -z ${version} ]; then
+            version="$( dpkg-deb --show --showformat '${Version}' "${package}" )"
+        fi
+        # Now strip any version information that might be available.
+        src="$( echo "$src" | cut -d' ' -f1 )"
+        # If there is no source field, then the source package has the same name as the
+        # binary package.
+        if [ -z "${src}" ];then
+            src="$( dpkg-deb --show --showformat '${Package}' "${package}" )"
+        fi
+
+        sudo -E chroot --userspec=$( id -u ):$( id -g ) ${ROOTFSDIR} \
+            sh -c 'mkdir -p "/deb-src/${1}/${2}" && cd "/deb-src/${1}/${2}" && \
+                apt-get -y --download-only --only-source source "$2"="$3"' \
+                download-src "${DISTRO}" "${src}" "${version}"
+    done
+
+    sudo -s <<'EOSUDO'
+    mountpoint -q '${ROOTFSDIR}/deb-src' && \
+    umount -l ${ROOTFSDIR}/deb-src
+    rm -rf '${ROOTFSDIR}/etc/resolv.conf'
+EOSUDO
+}
+
 do_rootfs_postprocess[vardeps] = "${ROOTFS_POSTPROCESS_COMMAND}"
 python do_rootfs_postprocess() {
     # Take care that its correctly mounted:
