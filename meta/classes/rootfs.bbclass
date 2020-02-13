@@ -201,6 +201,35 @@ rootfs_generate_manifest () {
         ${ROOTFS_MANIFEST_DEPLOY_DIR}/"${PF}".manifest
 }
 
+ROOTFS_POSTPROCESS_COMMAND += "${@bb.utils.contains('ROOTFS_FEATURES', 'cache-deb-src', 'cache_deb_src', '', d)}"
+cache_deb_src() {
+    if [ "${ISAR_USE_CACHED_BASE_REPO}" = "1" ]; then
+        return 0
+    fi
+    sudo -s <<'EOSUDO'
+    sudo cp -L /etc/resolv.conf '${ROOTFSDIR}/etc'
+    mkdir -p "${DEBSRCDIR}"/"${DISTRO}"
+    mkdir -p '${ROOTFSDIR}/deb-src'
+    mountpoint -q '${ROOTFSDIR}/deb-src' || \
+    mount --bind '${DEBSRCDIR}' '${ROOTFSDIR}/deb-src'
+EOSUDO
+    sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get update
+    find "${DEBDIR}"/"${DISTRO}" -name '*\.deb' | while read package; do
+        local pkg="$( dpkg-deb --show --showformat '${Package}' "${package}" )"
+        local dirname="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
+        if [ -z "${dirname}" ];then
+            dirname="$pkg"
+        fi
+        sudo -E chroot --userspec=$( id -u ):$( id -g ) ${ROOTFSDIR} \
+            sh -c 'mkdir -p "/deb-src/${1}/${2}" && cd "/deb-src/${1}/${2}" && apt-get -y source --download-only "$3"' download-src "${DISTRO}" "${dirname}" "${pkg}"
+    done
+    sudo -s <<'EOSUDO'
+    mountpoint -q '${ROOTFSDIR}/deb-src' && \
+    umount -l ${ROOTFSDIR}/deb-src
+    sudo rm -rf '${ROOTFSDIR}/etc/resolv.conf'
+EOSUDO
+}
+
 do_rootfs_postprocess[vardeps] = "${ROOTFS_POSTPROCESS_COMMAND}"
 python do_rootfs_postprocess() {
     # Take care that its correctly mounted:
