@@ -216,7 +216,8 @@ cache_deb_src() {
     mount --bind '${DEBSRCDIR}' '${ROOTFSDIR}/deb-src'
 EOSUDO
 
-    sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get update
+    sudo -E chroot ${ROOTFSDIR} rm -f /var/lib/apt/lists/*
+    sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get -o Acquire::https::No-Cache=True -o Acquire::http::No-Cache=True update
 
     find "${DEBDIR}"/"${DISTRO}" -name '*\.deb' | while read package; do
         local src="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
@@ -236,7 +237,7 @@ EOSUDO
 
         sudo -E chroot --userspec=$( id -u ):$( id -g ) ${ROOTFSDIR} \
             sh -c 'mkdir -p "/deb-src/${1}/${2}" && cd "/deb-src/${1}/${2}" && \
-                apt-get -y --download-only --only-source source "$2"="$3"' \
+                apt-get -o Acquire::https::No-Cache=True -o Acquire::http::No-Cache=True -y --download-only --only-source source "$2"="$3"' \
                 download-src "${DISTRO}" "${src}" "${version}"
     done
 
