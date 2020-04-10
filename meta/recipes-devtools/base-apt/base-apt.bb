@@ -55,7 +55,7 @@ repo() {
         "${WORKDIR}/distributions.in" \
         "${KEYFILES}"
 
-    if [ -d '${BUILDCHROOT_HOST_DIR}/var/cache/apt' ] &&
+    if [ '${ISAR_CROSS_COMPILE}' -eq 1 ] &&
         [ '${DISTRO}' != '${HOST_DISTRO}' ]; then
         # We would need two separate repository paths for that.
         # Otherwise packages (especially the 'all' arch ones) from one
