@@ -5,20 +5,44 @@
 
 inherit repository
 
+check_in_rootfs() {
+    local package="$( dpkg-deb --show --showformat '${Package}' "${1}" )"
+    local output="$( grep -hs "^Package: ${package}" \
+            "${IMAGE_ROOTFS}"/var/lib/dpkg/status \
+            "${BUILDCHROOT_HOST_DIR}"/var/lib/dpkg/status \
+            "${BUILDCHROOT_TARGET_DIR}"/var/lib/dpkg/status )"
+    [ -z "${output}" ] && return 1 || return 0
+}
+
+debsrc_do_mounts() {
+    sudo -s <<EOSUDO
+    mkdir -p "${1}/deb-src"
+    mountpoint -q "${1}/deb-src" || \
+    mount --bind "${DEBSRCDIR}" "${1}/deb-src"
+EOSUDO
+}
+
+debsrc_undo_mounts() {
+    sudo -s <<EOSUDO
+    mkdir -p "${1}/deb-src"
+    mountpoint -q "${1}/deb-src" && \
+    umount -l "${1}/deb-src"
+    rm -rf "${1}/deb-src"
+EOSUDO
+}
+
 debsrc_download() {
     set -x
     export rootfs="$1"
     export rootfs_distro="$2"
-    mkdir -p "${DEBSRCDIR}"/"${rootfs_distro}"
+    export debsrc_dir="${DEBSRCDIR}/${rootfs_distro}"
+    mkdir -p "${debsrc_dir}"
     ( flock 9
     set -e
     printenv | grep -q BB_VERBOSE_LOGS && set -x
-    sudo -E -s <<'EOSUDO'
-    mkdir -p "${rootfs}/deb-src"
-    mountpoint -q "${rootfs}/deb-src" || \
-    mount --bind "${DEBSRCDIR}" "${rootfs}/deb-src"
-EOSUDO
+    debsrc_do_mounts "${rootfs}"
     find "${rootfs}/var/cache/apt/archives/" -maxdepth 1 -type f -iname '*\.deb' | while read package; do
+        check_in_rootfs "${package}" || continue
         local src="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
         # If the binary package version and source package version are different, then the
         # source package version will be present inside "()" of the Source field.
@@ -33,23 +57,20 @@ EOSUDO
         if [ -z "${src}" ];then
             src="$( dpkg-deb --show --showformat '${Package}' "${package}" )"
         fi
-        # Strip epoch if any.
-        dscfile=$(find "${DEBSRCDIR}"/"${rootfs_distro}" -name "${src}_${version#*:}.dsc")
-        if [ -n "$dscfile" ]; then
-            continue
-        fi
+        # Strip epoch, if any. Version-Format: [epoch:]upstream_version[-debian_revision].
+        version="${version#*:}"
+        # Skip files that were already downloaded. apt-get source also skips redownloading but this
+        # method is faster and saves a lot of time.
+        local dscfile=$(find "${debsrc_dir}" -name "${src}_${version}.dsc")
+        [ -z "$dscfile" ] || continue
 
-        sudo -E chroot --userspec=$( id -u ):$( id -g ) ${rootfs} \
+        sudo -E chroot --userspec=$( id -u ):$( id -g ) "${rootfs}" \
             sh -c 'mkdir -p "/deb-src/${1}/${2}" && cd "/deb-src/${1}/${2}" && \
                 apt-get -y --download-only --only-source source "$2"="$3"' \
                 download-src "${rootfs_distro}" "${src}" "${version}"
     done
-    sudo -E -s <<'EOSUDO'
-    mountpoint -q "${rootfs}/deb-src" && \
-    umount -l "${rootfs}/deb-src"
-    rm -rf "${rootfs}/deb-src"
-EOSUDO
-    ) 9>"${DEBSRCDIR}/${rootfs_distro}.lock"
+    debsrc_undo_mounts "${rootfs}"
+    ) 9>"${debsrc_dir}.lock"
 }
 
 deb_dl_dir_import() {
