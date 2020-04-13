@@ -185,44 +185,6 @@ python do_rootfs_install() {
 }
 addtask rootfs_install before do_rootfs_postprocess after do_unpack
 
-download_src() {
-    set -x
-    local rootfs="$1"
-    local rootfs_distro="$2"
-    mkdir -p "${DEBSRCDIR}"/"${rootfs_distro}"
-    sudo -E -s <<'EOSUDO'
-    set -x
-    mkdir -p "${rootfs}/deb-src"
-    mountpoint -q "${rootfs}/deb-src" || \
-    mount --bind "${DEBSRCDIR}" "${rootfs}/deb-src"
-EOSUDO
-    find "${rootfs}/var/cache/apt/archives/" -maxdepth 1 -type f -iname '*\.deb' | while read package; do
-        local src="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
-        # If the binary package version and source package version are different, then the
-        # source package version will be present inside "()" of the Source field.
-        local version="$( echo "$src" | cut -sd "(" -f2 | cut -sd ")" -f1 )"
-        if [ -z ${version} ]; then
-            version="$( dpkg-deb --show --showformat '${Version}' "${package}" )"
-        fi
-        # Now strip any version information that might be available.
-        src="$( echo "$src" | cut -d' ' -f1 )"
-        # If there is no source field, then the source package has the same name as the
-        # binary package.
-        if [ -z "${src}" ];then
-            src="$( dpkg-deb --show --showformat '${Package}' "${package}" )"
-        fi
-
-        sudo -E chroot --userspec=$( id -u ):$( id -g ) ${rootfs} \
-            sh -c 'mkdir -p "/deb-src/${1}/${2}" && cd "/deb-src/${1}/${2}" && \
-                apt-get -y --download-only --only-source source "$2"="$3"' \
-                download-src "${rootfs_distro}" "${src}" "${version}"
-    done
-    sudo -E -s <<'EOSUDO'
-    mountpoint -q "${rootfs}/deb-src" && \
-    umount -l "${rootfs}/deb-src"
-EOSUDO
-}
-
 ROOTFS_POSTPROCESS_COMMAND += "${@bb.utils.contains('ROOTFS_FEATURES', 'cache-deb-src', 'cache_deb_src', '', d)}"
 cache_deb_src() {
 
@@ -231,10 +193,10 @@ cache_deb_src() {
     #sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get update
 
     deb_dl_dir_import ${ROOTFSDIR} ${ROOTFS_DISTRO}
-    download_src ${ROOTFSDIR} ${ROOTFS_DISTRO}
+    debsrc_download ${ROOTFSDIR} ${ROOTFS_DISTRO}
     if [ "${HOST_DISTRO}" != "${DISTRO}" -a "${ISAR_CROSS_COMPILE}" = "1" ];then
         deb_dl_dir_import ${BUILDCHROOT_HOST_DIR} ${HOST_DISTRO}
-        download_src ${BUILDCHROOT_HOST_DIR} ${HOST_DISTRO}
+        debsrc_download ${BUILDCHROOT_HOST_DIR} ${HOST_DISTRO}
     fi
 
     rootfs_install_clean_files
