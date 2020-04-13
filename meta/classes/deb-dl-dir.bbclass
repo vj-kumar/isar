@@ -33,6 +33,11 @@ EOSUDO
         if [ -z "${src}" ];then
             src="$( dpkg-deb --show --showformat '${Package}' "${package}" )"
         fi
+        # Strip epoch if any.
+        dscfile=$(find "${DEBSRCDIR}"/"${rootfs_distro}" -name "${src}_${version#*:}.dsc")
+        if [ -n "$dscfile" ]; then
+            continue
+        fi
 
         sudo -E chroot --userspec=$( id -u ):$( id -g ) ${rootfs} \
             sh -c 'mkdir -p "/deb-src/${1}/${2}" && cd "/deb-src/${1}/${2}" && \
