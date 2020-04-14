@@ -191,7 +191,7 @@ cache_deb_src() {
     rootfs_install_resolvconf
     #Why can't I do an update?
     #Needed in case this section is modified. Second time caching might fail saying no files
-    #sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get update
+    sudo -E chroot ${ROOTFSDIR} /usr/bin/apt-get update
 
     deb_dl_dir_import ${ROOTFSDIR} ${ROOTFS_DISTRO}
     debsrc_download ${ROOTFSDIR} ${ROOTFS_DISTRO}
