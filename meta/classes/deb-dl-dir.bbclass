@@ -5,6 +5,15 @@
 
 inherit repository
 
+check_in_rootfs() {
+    local package="$( dpkg-deb --show --showformat '${Package}' "${1}" )"
+    local output="$( grep -hs "^Package: ${package}" \
+            "${IMAGE_ROOTFS}"/var/lib/dpkg/status \
+            "${BUILDCHROOT_HOST_DIR}"/var/lib/dpkg/status \
+            "${BUILDCHROOT_TARGET_DIR}"/var/lib/dpkg/status )"
+    [ -z "${output}" ] && return 1 || return 0
+}
+
 debsrc_download() {
     export rootfs="$1"
     export rootfs_distro="$2"
@@ -18,6 +27,7 @@ debsrc_download() {
     mount --bind "${DEBSRCDIR}" "${rootfs}/deb-src"
 EOSUDO
     find "${rootfs}/var/cache/apt/archives/" -maxdepth 1 -type f -iname '*\.deb' | while read package; do
+        check_in_rootfs "${package}" || continue
         local src="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
         # If the binary package version and source package version are different, then the
         # source package version will be present inside "()" of the Source field.
