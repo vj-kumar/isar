@@ -177,6 +177,10 @@ IMAGE_INSTALL = "hello-isar example-raw example-module-${KERNEL_NAME} enable-fsc
 ISAR_CROSS_COMPILE ?= "0"
 
 #
+# Uncomment this to enable caching of all source packages.
+# Without this feature, only sources of packages downloaded with apt:// are downloaded.
+#BASE_REPO_FEATURES ?= "cache-deb-src"
+#
 # Uncomment this to enable use of cached base repository
 #ISAR_USE_CACHED_BASE_REPO ?= "1"
 #
