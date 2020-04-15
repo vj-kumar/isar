@@ -63,9 +63,11 @@ image_do_mounts() {
 }
 
 ROOTFSDIR = "${IMAGE_ROOTFS}"
-ROOTFS_FEATURES += "clean-package-cache generate-manifest cach-deb-src"
+ROOTFS_FEATURES += "clean-package-cache generate-manifest"
 ROOTFS_PACKAGES += "${IMAGE_PREINSTALL} ${IMAGE_INSTALL}"
 ROOTFS_MANIFEST_DEPLOY_DIR ?= "${DEPLOY_DIR_IMAGE}"
+
+ROOTFS_POSTPROCESS_COMMAND_prepend = "${@bb.utils.contains('BASE_REPO_FEATURES', 'cache-deb-src', 'cache_deb_src', '', d)} "
 
 inherit rootfs
 inherit image-sdk-extension
