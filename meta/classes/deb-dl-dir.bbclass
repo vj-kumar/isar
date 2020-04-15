@@ -7,10 +7,13 @@ inherit repository
 
 check_in_rootfs() {
     local package="$( dpkg-deb --show --showformat '${Package}' "${1}" )"
-    local output="$( grep -hs "^Package: ${package}" \
-            "${IMAGE_ROOTFS}"/var/lib/dpkg/status \
-            "${BUILDCHROOT_HOST_DIR}"/var/lib/dpkg/status \
-            "${BUILDCHROOT_TARGET_DIR}"/var/lib/dpkg/status )"
+    local arch="$( dpkg-deb --show --showformat '${Architecture}' "${1}" )"
+    local version="$( dpkg-deb --show --showformat '${Version}' "${1}" )"
+    local output="$( grep -hs "status installed ${package}:${arch} ${version}" \
+            "${IMAGE_ROOTFS}"/var/log/dpkg.log \
+            "${BUILDCHROOT_HOST_DIR}"/var/log/dpkg.log \
+            "${BUILDCHROOT_TARGET_DIR}"/var/log/dpkg.log | head -1 )"
+
     [ -z "${output}" ] && return 1 || return 0
 }
 
