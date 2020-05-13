@@ -137,6 +137,7 @@ if [ -n "$CROSS_BUILD" ]; then
     sed -i -e 's/ISAR_CROSS_COMPILE ?= "0"/ISAR_CROSS_COMPILE ?= "1"/g' conf/local.conf
 fi
 
+echo IMAGE_INSTALL +=\"kselftest\" >> conf/local.conf
 if [ -n "$REPRO_BUILD" ]; then
     ISAR_TESTSUITE_GPG_PUB_KEY_FILE="$ISARROOT/testsuite/base-apt/test_pub.key"
     ISAR_TESTSUITE_GPG_PRIV_KEY_FILE="$ISARROOT/testsuite/base-apt/test_priv.key"
