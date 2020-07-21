@@ -157,13 +157,13 @@ EOSUDO
           IMAGE_FULLNAME="$6"
           IMAGE_BASENAME="$7"
           shift 7
-
+          # The python path is hard-coded as /usr/bin/python3-native/python3 in wic. Handle that.
           export PATH="$ISARROOT/bitbake/bin:$PATH"
           "$ISARROOT"/scripts/wic create "$WKS_FULL_PATH" \
             --vars "$STAGING_DIR/$MACHINE/imgdata/" \
             -o "/$WICTMP/${IMAGE_FULLNAME}.wic/" \
             --bmap \
-            -e "$IMAGE_BASENAME" $@' \
+            -e "$IMAGE_BASENAME" -D $@ \
               my_script "${ISARROOT}" "${WKS_FULL_PATH}" "${STAGING_DIR}" \
               "${MACHINE}" "${WICTMP}" "${IMAGE_FULLNAME}" "${IMAGE_BASENAME}" \
               ${WIC_CREATE_EXTRA_ARGS}
