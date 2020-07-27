@@ -163,7 +163,7 @@ EOSUDO
             --vars "$STAGING_DIR/$MACHINE/imgdata/" \
             -o "/$WICTMP/${IMAGE_FULLNAME}.wic/" \
             --bmap \
-            -e "$IMAGE_BASENAME" -D $@ \
+            -e "$IMAGE_BASENAME" -D $@' \
               my_script "${ISARROOT}" "${WKS_FULL_PATH}" "${STAGING_DIR}" \
               "${MACHINE}" "${WICTMP}" "${IMAGE_FULLNAME}" "${IMAGE_BASENAME}" \
               ${WIC_CREATE_EXTRA_ARGS}
