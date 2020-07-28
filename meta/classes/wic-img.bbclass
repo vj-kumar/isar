@@ -143,6 +143,7 @@ EOSUDO
     export FAKEROOTCMD=${FAKEROOTCMD}
     export BUILDDIR=${BUILDDIR}
     export MTOOLS_SKIP_CHECK=1
+    mkdir -p ${IMAGE_ROOTFS}/../pseudo
 
     # create the temp dir in the buildchroot to ensure uniqueness
     WICTMP=$(cd ${BUILDCHROOT_DIR}; mktemp -d -p tmp)
@@ -157,22 +158,31 @@ EOSUDO
           IMAGE_FULLNAME="$6"
           IMAGE_BASENAME="$7"
           shift 7
-
+          # The python path is hard-coded as /usr/bin/python3-native/python3 in wic. Handle that.
+          mkdir -p /usr/bin/python3-native/
+          if [ $(head -1 $(which bmaptool) | grep python3) ];then
+            ln -s /usr/bin/python3 /usr/bin/python3-native/python3
+          else
+            ln -s /usr/bin/python2 /usr/bin/python3-native/python3
+          fi
           export PATH="$ISARROOT/bitbake/bin:$PATH"
           "$ISARROOT"/scripts/wic create "$WKS_FULL_PATH" \
             --vars "$STAGING_DIR/$MACHINE/imgdata/" \
             -o "/$WICTMP/${IMAGE_FULLNAME}.wic/" \
             --bmap \
-            -e "$IMAGE_BASENAME" $@' \
+            -e "$IMAGE_BASENAME" $@
+          rm -rf /usr/bin/python3-native' \
               my_script "${ISARROOT}" "${WKS_FULL_PATH}" "${STAGING_DIR}" \
               "${MACHINE}" "${WICTMP}" "${IMAGE_FULLNAME}" "${IMAGE_BASENAME}" \
               ${WIC_CREATE_EXTRA_ARGS}
+
     sudo chown -R $(stat -c "%U" ${ISARROOT}) ${ISARROOT}/meta ${ISARROOT}/meta-isar ${ISARROOT}/scripts || true
     WIC_DIRECT=$(ls -t -1 ${BUILDCHROOT_DIR}/$WICTMP/${IMAGE_FULLNAME}.wic/*.direct | head -1)
     sudo chown -R $(id -u):$(id -g) ${BUILDCHROOT_DIR}/${WICTMP}
     mv -f ${WIC_DIRECT} ${WIC_IMAGE_FILE}
     mv -f ${WIC_DIRECT}.bmap ${WIC_IMAGE_FILE}.bmap
     rm -rf ${BUILDCHROOT_DIR}/${WICTMP}
+    rm -rf ${IMAGE_ROOTFS}/../pseudo
 }
 
 do_wic_image[file-checksums] += "${WKS_FILE_CHECKSUM}"
