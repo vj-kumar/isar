@@ -170,7 +170,7 @@ EOSUDO
             --vars "$STAGING_DIR/$MACHINE/imgdata/" \
             -o "/$WICTMP/${IMAGE_FULLNAME}.wic/" \
             --bmap \
-            -e "$IMAGE_BASENAME" $@
+            -e "$IMAGE_BASENAME" -D $@
           rm -rf /usr/bin/python3-native' \
               my_script "${ISARROOT}" "${WKS_FULL_PATH}" "${STAGING_DIR}" \
               "${MACHINE}" "${WICTMP}" "${IMAGE_FULLNAME}" "${IMAGE_BASENAME}" \
