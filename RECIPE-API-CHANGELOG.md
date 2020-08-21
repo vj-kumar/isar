@@ -246,3 +246,26 @@ by setting DEBIAN_BUILD_DEPENDS.
 
 ${S} can now be used for checking out sources without being linked implicitly
 with ${D} which needs to be filled explicitly in do_install as before.
+
+### Wic adds /boot mountpoint to fstab
+
+With the latest wic, /boot mount point, if any, is added to /etc/fstab. Debian
+uses /boot to store the kernel and initrd images.
+
+Any wks file which assumed that /boot would be skipped from /etc/fstab should
+now be corrected. Otherwise, the original /boot contents, i.e kernel initrd &
+config files will be unavailable after boot.
+
+Below is an example wks entry that might cause an issue. The rootfs already
+has /boot with valid contents. Specifying /boot as mount point for the efi
+partition would only make /boot contents of "part /" unavailable after boot.
+```
+part /boot --source bootimg-efi-isar --sourceparams "loader=grub-efi" --ondisk sda --label efi --part-type EF00 --align 1024
+part / --source rootfs --ondisk sda --fstype ext4 --label platform --align 1024 --use-uuid
+```
+If mounting /boot parition is an unwanted behaviour in your target then
+remove it.
+```
+part --source bootimg-efi-isar --sourceparams "loader=grub-efi" --ondisk sda --label efi --part-type EF00 --align 1024
+part / --source rootfs --ondisk sda --fstype ext4 --label platform --align 1024 --use-uuid
+```
