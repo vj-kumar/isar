@@ -48,3 +48,7 @@ else
     # Upgrade any already installed packages in case we are partially rebuilding
     apt-get upgrade -y --allow-downgrades
 fi
+
+# Cleanup equivs artifacts if exist
+find . -name '*-build-deps_*.buildinfo' -delete
+find . -name '*-build-deps_*.changes' -delete
