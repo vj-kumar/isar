@@ -41,7 +41,8 @@ dpkg_runbuild_prepend() {
         # Debian kernels install that folder indirectly via a dependency.
         KERNEL_DEP=$(dpkg -s --root=${BUILDCHROOT_DIR} linux-headers-${KERNEL_NAME} | \
                      grep "^Depends: .*linux-headers-" | \
-                     sed 's/.*\(linux-headers-[^,]*\).*/\1/')
+                     sed 's/.*\(linux-headers-[^,]*\).*/\1/' | \
+                     sed 's/([^)]*)//g')
         export KDIR=$(dpkg -L --root=${BUILDCHROOT_DIR} ${KERNEL_DEP} | \
                       grep "/lib/modules/.*/build")
     fi
