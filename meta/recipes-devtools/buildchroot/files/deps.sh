@@ -36,19 +36,21 @@ fi
 # Install all build deps
 if [ "$3" = "--download-only" ]; then
     # this will not return 0 even when it worked
-    mk-build-deps $set_arch -t "${install_cmd}" -i -r debian/control &> \
+    mk-build-deps $set_arch -t "${install_cmd}" -i debian/control &> \
         mk-build-deps.output || true
     cat mk-build-deps.output
     # we assume success when we find this
     grep "mk-build-deps: Unable to install all build-dep packages" mk-build-deps.output
     rm -f mk-build-deps.output
 else
-    mk-build-deps $set_arch -t "${install_cmd}" -i -r debian/control
+    mk-build-deps $set_arch -t "${install_cmd}" -i debian/control
 
     # Upgrade any already installed packages in case we are partially rebuilding
     apt-get upgrade -y --allow-downgrades
 fi
 
-# Cleanup equivs artifacts if exist
-find . -name '*-build-deps_*.buildinfo' -delete
-find . -name '*-build-deps_*.changes' -delete
+# Move equivs artifacts outside if exist
+mkdir -p ../build-deps
+find . -name '*-build-deps_*.deb' -exec mv -t ../build-deps {} +
+find . -name '*-build-deps_*.buildinfo' -exec mv -t ../build-deps {} +
+find . -name '*-build-deps_*.changes' -exec mv -t ../build-deps {} +
