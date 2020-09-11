@@ -182,6 +182,11 @@ ISAR_CROSS_COMPILE ?= "0"
 #ISAR_ENABLE_COMPAT_ARCH ?= "1"
 
 #
+# NOTE: This is just to test 32-bit building on 64-bit archs.
+IMAGE_INSTALL_remove_compat-arch = " samefile"
+IMAGE_INSTALL_append_compat-arch = " samefile-compat"
+
+#
 # Uncomment this to enable use of cached base repository
 #ISAR_USE_CACHED_BASE_REPO ?= "1"
 #

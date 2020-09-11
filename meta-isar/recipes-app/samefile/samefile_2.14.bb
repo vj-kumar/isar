@@ -15,6 +15,12 @@ DESCRIPTION = "utility that finds files with identical contents"
 SRC_URI = "http://www.schweikhardt.net/samefile-2.14.tar.gz"
 SRC_URI[md5sum] = "0b438249f3549f18b49cbb49b0473f70"
 
+# NOTE: This is just to test 32-bit building on 64-bit archs.
+#       We need to rename the package to avoid the conflict with parallel armhf
+#       image builds.
+PACKAGE_ARCH_compat-arch = "${COMPAT_DISTRO_ARCH}"
+PN_compat-arch = "samefile-compat"
+
 do_prepare_build[cleandirs] += "${S}/debian"
 do_prepare_build() {
     # You could also create parts of your debianization before calling
