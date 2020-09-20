@@ -46,22 +46,10 @@ debsrc_download() {
 
     find "${rootfs}/var/cache/apt/archives/" -maxdepth 1 -type f -iname '*\.deb' | while read package; do
         check_in_rootfs "${package}" || continue
-        local src="$( dpkg-deb --show --showformat '${Source}' "${package}" )"
-        # If the binary package version and source package version are different, then the
-        # source package version will be present inside "()" of the Source field.
-        local version="$( echo "$src" | cut -sd "(" -f2 | cut -sd ")" -f1 )"
-        if [ -z ${version} ]; then
-            version="$( dpkg-deb --show --showformat '${Version}' "${package}" )"
-        fi
-        # Now strip any version information that might be available.
-        src="$( echo "$src" | cut -d' ' -f1 )"
-        # If there is no source field, then the source package has the same name as the
-        # binary package.
-        if [ -z "${src}" ];then
-            src="$( dpkg-deb --show --showformat '${Package}' "${package}" )"
-        fi
+        local src="$( dpkg-deb --show --showformat '${source:Package}' "${package}" )"
+        local version="$( dpkg-deb --show --showformat '${source:Version}' "${package}" )"
         # Strip epoch, if any, from version.
-        local dscfile=$(find "${DEBSRCDIR}"/"${rootfs_distro}" -name "${src}_${version#*:}.dsc")
+        local dscfile=$(find "${DEBSRCDIR}"/"${rootfs_distro}" -name "${src}_${version}.dsc")
         [ -z "$dscfile" ] || continue
 
         sudo -E chroot --userspec=$( id -u ):$( id -g ) ${rootfs} \
