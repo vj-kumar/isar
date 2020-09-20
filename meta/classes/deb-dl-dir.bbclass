@@ -5,16 +5,19 @@
 
 inherit repository
 
-check_in_rootfs() {
+is_part_of_current_build() {
     local package="$( dpkg-deb --show --showformat '${Package}' "${1}" )"
     local arch="$( dpkg-deb --show --showformat '${Architecture}' "${1}" )"
     local version="$( dpkg-deb --show --showformat '${Version}' "${1}" )"
+    # Since we are parsing all the debs in DEBDIR, we can to some extend
+    # try to eliminate some debs that are not part of the current multiconfig
+    # build using the below method.
     local output="$( grep -hs "status installed ${package}:${arch} ${version}" \
             "${IMAGE_ROOTFS}"/var/log/dpkg.log \
             "${BUILDCHROOT_HOST_DIR}"/var/log/dpkg.log \
             "${BUILDCHROOT_TARGET_DIR}"/var/log/dpkg.log | head -1 )"
 
-    [ -z "${output}" ] && return 1 || return 0
+    [ -n "${output}" ]
 }
 
 debsrc_do_mounts() {
@@ -45,7 +48,7 @@ debsrc_download() {
     debsrc_do_mounts "${rootfs}"
 
     find "${rootfs}/var/cache/apt/archives/" -maxdepth 1 -type f -iname '*\.deb' | while read package; do
-        check_in_rootfs "${package}" || continue
+        is_part_of_current_build "${package}" || continue
         local src="$( dpkg-deb --show --showformat '${source:Package}' "${package}" )"
         local version="$( dpkg-deb --show --showformat '${source:Version}' "${package}" )"
         # Strip epoch, if any, from version.
