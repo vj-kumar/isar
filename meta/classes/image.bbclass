@@ -63,7 +63,7 @@ image_do_mounts() {
 }
 
 ROOTFSDIR = "${IMAGE_ROOTFS}"
-ROOTFS_FEATURES += "clean-package-cache generate-manifest"
+ROOTFS_FEATURES += "clean-package-cache generate-manifest cach-deb-src"
 ROOTFS_PACKAGES += "${IMAGE_PREINSTALL} ${IMAGE_INSTALL}"
 ROOTFS_MANIFEST_DEPLOY_DIR ?= "${DEPLOY_DIR_IMAGE}"
 
