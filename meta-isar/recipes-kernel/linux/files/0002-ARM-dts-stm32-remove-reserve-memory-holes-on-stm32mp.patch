@@ -1,0 +1,65 @@
+From a7eb535f0f1c818202b0a0a8ec2aee506a0114e7 Mon Sep 17 00:00:00 2001
+From: Alexandre Torgue <alexandre.torgue@st.com>
+Date: Fri, 29 Nov 2019 18:30:37 +0100
+Subject: [PATCH 2/2] ARM: dts: stm32: remove reserve memory holes on
+ stm32mp157 boards
+
+This commit removes hole between GPU and OPTEE reserve memory in order to
+optimize Linux memory management.
+
+Signed-off-by: Alexandre Torgue <alexandre.torgue@st.com>
+Change-Id: I4461085fd34139ee1b88c5f5116dd5c1de0e10ac
+Reviewed-on: https://gerrit.st.com/c/mpu/oe/st/linux-stm32/+/151463
+Reviewed-by: CITOOLS <smet-aci-reviews@lists.codex.cro.st.com>
+Reviewed-by: CIBUILD <smet-aci-builds@lists.codex.cro.st.com>
+---
+ arch/arm/boot/dts/stm32mp157a-dk1.dts |  4 ++--
+ arch/arm/boot/dts/stm32mp157c-ed1.dts | 13 +++++++++++--
+ 2 files changed, 13 insertions(+), 4 deletions(-)
+
+diff --git a/arch/arm/boot/dts/stm32mp157a-dk1.dts b/arch/arm/boot/dts/stm32mp157a-dk1.dts
+index 589d08bdffa0..da762b301d72 100644
+--- a/arch/arm/boot/dts/stm32mp157a-dk1.dts
++++ b/arch/arm/boot/dts/stm32mp157a-dk1.dts
+@@ -69,8 +69,8 @@
+ 			no-map;
+ 		};
+ 
+-		gpu_reserved: gpu@d4000000 {
+-			reg = <0xd4000000 0x4000000>;
++		gpu_reserved: gpu@da000000 {
++			reg = <0xda000000 0x4000000>;
+ 			no-map;
+ 		};
+ 
+diff --git a/arch/arm/boot/dts/stm32mp157c-ed1.dts b/arch/arm/boot/dts/stm32mp157c-ed1.dts
+index 1d426ea8bdaf..4e0f665c5810 100644
+--- a/arch/arm/boot/dts/stm32mp157c-ed1.dts
++++ b/arch/arm/boot/dts/stm32mp157c-ed1.dts
+@@ -64,8 +64,13 @@
+ 			no-map;
+ 		};
+ 
+-		gpu_reserved: gpu@e8000000 {
+-			reg = <0xe8000000 0x8000000>;
++		gpu_reserved: gpu@f6000000 {
++			reg = <0xf6000000 0x8000000>;
++			no-map;
++		};
++
++		optee_memory: optee@0xfe000000 {
++			reg = <0xfe000000 0x02000000>;
+ 			no-map;
+ 		};
+ 	};
+@@ -329,3 +334,7 @@
+ 	vdda1v1-supply = <&reg11>;
+ 	vdda1v8-supply = <&reg18>;
+ };
++
++&optee {
++	status = "okay";
++};
+-- 
+2.26.2
+

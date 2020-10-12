@@ -1,0 +1,79 @@
+From 3602c4835344fe2124406608fcec5737a176d7d8 Mon Sep 17 00:00:00 2001
+From: Etienne Carriere <etienne.carriere@st.com>
+Date: Fri, 8 Nov 2019 13:56:15 +0100
+Subject: [PATCH 1/2] ARM: dts: stm32: add OP-TEE node and its reserved-memory
+ node for stm32mp157
+
+Adds firmware/optee node and adds a reserved-memory node named
+optee for the DDR reserved to OP-TEE.
+
+SoC defines a default disabled OP-TEE node.
+DK1 defines a default disabled OP-TEE reserved-memory node.
+DK2 enables OP-TEE and its reserved memory.
+ED1 defines a default disabled OP-TEE reserved-memory node and
+enables OP-TEE node.
+
+Change-Id: I7b5d50a27a2a81b7cb510ae14ee96e975e41bb97
+Signed-off-by: Etienne Carriere <etienne.carriere@st.com>
+Reviewed-on: https://gerrit.st.com/c/mpu/oe/st/linux-stm32/+/148795
+Tested-by: Alexandre TORGUE <alexandre.torgue@st.com>
+Reviewed-by: Alexandre TORGUE <alexandre.torgue@st.com>
+---
+ arch/arm/boot/dts/stm32mp157a-dk1.dts | 6 ++++++
+ arch/arm/boot/dts/stm32mp157c-dk2.dts | 8 ++++++++
+ arch/arm/boot/dts/stm32mp157c.dtsi    | 8 ++++++++
+ 3 files changed, 22 insertions(+)
+
+diff --git a/arch/arm/boot/dts/stm32mp157a-dk1.dts b/arch/arm/boot/dts/stm32mp157a-dk1.dts
+index 0615d1c8a6fc..589d08bdffa0 100644
+--- a/arch/arm/boot/dts/stm32mp157a-dk1.dts
++++ b/arch/arm/boot/dts/stm32mp157a-dk1.dts
+@@ -73,6 +73,12 @@
+ 			reg = <0xd4000000 0x4000000>;
+ 			no-map;
+ 		};
++
++		optee_memory: optee@0xde000000 {
++			reg = <0xde000000 0x02000000>;
++			no-map;
++			status = "disabled";
++		};
+ 	};
+ 
+ 	led {
+diff --git a/arch/arm/boot/dts/stm32mp157c-dk2.dts b/arch/arm/boot/dts/stm32mp157c-dk2.dts
+index 20ea601a546d..9248ee3eb98a 100644
+--- a/arch/arm/boot/dts/stm32mp157c-dk2.dts
++++ b/arch/arm/boot/dts/stm32mp157c-dk2.dts
+@@ -74,3 +74,11 @@
+ 		};
+ 	};
+ };
++ 
++&optee_memory {
++	status = "okay";
++};
++
++&optee {
++	status = "okay";
++};
+diff --git a/arch/arm/boot/dts/stm32mp157c.dtsi b/arch/arm/boot/dts/stm32mp157c.dtsi
+index f98e0370c0bc..84d34120aab3 100644
+--- a/arch/arm/boot/dts/stm32mp157c.dtsi
++++ b/arch/arm/boot/dts/stm32mp157c.dtsi
+@@ -1509,4 +1509,12 @@
+ 			status = "disabled";
+ 		};
+ 	};
++
++	firmware {
++		optee: optee {
++			compatible = "linaro,optee-tz";
++			method = "smc";
++			status = "disabled";
++		};
++	};
+ };
+-- 
+2.26.2
+

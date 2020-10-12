@@ -11,6 +11,8 @@ ARCHIVE_VERSION = "${@ d.getVar('PV')[:-2] if d.getVar('PV').endswith('.0') else
 
 SRC_URI += " \
     https://cdn.kernel.org/pub/linux/kernel/v5.x/linux-${ARCHIVE_VERSION}.tar.xz \
+    file://0001-ARM-dts-stm32-add-OP-TEE-node-and-its-reserved-memor.patch \
+    file://0002-ARM-dts-stm32-remove-reserve-memory-holes-on-stm32mp.patch \
     file://x86_64_defconfig \
     file://no-ubifs-fs.cfg \
     file://no-root-nfs.cfg;apply=no"
