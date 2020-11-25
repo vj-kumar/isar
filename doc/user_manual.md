@@ -918,3 +918,28 @@ And build the corresponding image target:
 ```
 bitbake mc:qemuarm64-buster:isar-image-base
 ```
+## Cache all upstream Debian source packages in local apt
+
+### Motivation
+
+For OSS license clearance, we might need to have the sources of all Debian packages we
+ship with the particular image.
+
+Currently the local-apt generated has only Debian binary packages. Extend the local-apt
+to have Debian source packages as well, for OSS clearing purposes.
+
+### Solution
+
+ - Trigger download of Debian source packages as part of rootfs postprocess.
+
+With the current base-apt implementation, we already cache all the binary packages and
+generate a local-apt for offline build.
+
+Use rootfs postprocessing to parse through the the list fo deb files in ${DEDDIR} and
+download the corresponding Debian source file using "apt-get source" command.
+
+By default, the Debian source caching is not enabled. If you want to cache the Debian
+sources as well, as part of your image build, add the below line to your local.conf file.
+```
+BASE_REPO_FEATURES = "cache-deb-src"
+```
