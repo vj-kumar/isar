@@ -77,7 +77,7 @@ do_apt_fetch() {
 }
 
 addtask apt_fetch after do_unpack before do_patch
-do_apt_fetch[lockfiles] += "${REPO_ISAR_DIR}/isar.lock"
+do_apt_fetch[lockfiles] += "${REPO_ISAR_DIR}/isar-do_apt_fetch.lock"
 
 addtask cleanall_apt before do_cleanall
 do_cleanall_apt[nostamp] = "1"
@@ -144,7 +144,7 @@ dpkg_runbuild() {
 }
 
 python do_dpkg_build() {
-    lock = bb.utils.lockfile(d.getVar("REPO_ISAR_DIR") + "/isar.lock",
+    lock = bb.utils.lockfile(d.getVar("REPO_ISAR_DIR") + "/isar-do_dpkg_build.lock",
                              shared=True)
     bb.build.exec_func("dpkg_do_mounts", d)
     bb.build.exec_func("dpkg_runbuild", d)
@@ -184,7 +184,7 @@ do_deploy_deb() {
 }
 
 addtask deploy_deb after do_dpkg_build before do_build
-do_deploy_deb[lockfiles] = "${REPO_ISAR_DIR}/isar.lock"
+do_deploy_deb[lockfiles] = "${REPO_ISAR_DIR}/isar-do_deploy_deb.lock"
 do_deploy_deb[dirs] = "${S}"
 
 python do_devshell() {

@@ -34,6 +34,7 @@ image_install_localepurge_download() {
 
 ROOTFS_INSTALL_COMMAND += "image_install_localepurge_install"
 image_install_localepurge_install[weight] = "700"
+image_install_localepurge_install[lockfiles] += "${REPO_ISAR_DIR}/isar-dpkg.lock"
 image_install_localepurge_install() {
 
     # Generate locale and localepurge configuration:

@@ -10,6 +10,7 @@ DEBIAN_DEPENDS ??= ""
 DESCRIPTION ??= "must not be empty"
 MAINTAINER ??= "Unknown maintainer <unknown@example.com>"
 
+deb_add_changelog[lockfiles] += "${REPO_ISAR_DIR}/isar-dpkg.lock"
 deb_add_changelog() {
 	changelog_v="${CHANGELOG_V}"
 	if [ -f ${S}/debian/changelog ]; then

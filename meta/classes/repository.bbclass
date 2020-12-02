@@ -61,6 +61,7 @@ repo_add_packages() {
         "$@"
 }
 
+repo_del_package[lockfiles] += "${REPO_ISAR_DIR}/isar-dpkg.lock"
 repo_del_package() {
     local dir="$1"
     local dbdir="$2"

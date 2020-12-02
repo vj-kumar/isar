@@ -9,7 +9,7 @@ inherit repository
 SRC_URI = "file://distributions.in"
 
 do_cache_config[stamp-extra-info] = "${DISTRO}"
-do_cache_config[lockfiles] = "${REPO_ISAR_DIR}/isar.lock"
+do_cache_config[lockfiles] = "${REPO_ISAR_DIR}/isar-do_cache_config.lock"
 
 # Generate reprepro config for current distro if it doesn't exist. Once it's
 # generated, this task should do nothing.

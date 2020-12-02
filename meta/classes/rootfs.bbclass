@@ -174,7 +174,7 @@ python do_rootfs_install() {
         progress_reporter.next_stage()
 
         if (d.getVarFlag(cmd, 'isar-apt-lock') or "") == "acquire-before":
-            lock = bb.utils.lockfile(d.getVar("REPO_ISAR_DIR") + "/isar.lock",
+            lock = bb.utils.lockfile(d.getVar("REPO_ISAR_DIR") + "/isar-do_rootfs_install.lock",
                                      shared=True)
 
         bb.build.exec_func(cmd, d)
@@ -212,6 +212,7 @@ rootfs_postprocess_clean_package_cache() {
 }
 
 ROOTFS_POSTPROCESS_COMMAND += "${@bb.utils.contains('ROOTFS_FEATURES', 'generate-manifest', 'rootfs_generate_manifest', '', d)}"
+rootfs_generate_manifest[lockfiles] += "${REPO_ISAR_DIR}/isar-dpkg.lock"
 rootfs_generate_manifest () {
     mkdir -p ${ROOTFS_MANIFEST_DEPLOY_DIR}
     sudo -E chroot --userspec=$(id -u):$(id -g) '${ROOTFSDIR}' \

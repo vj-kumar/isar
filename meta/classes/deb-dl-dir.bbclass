@@ -5,6 +5,7 @@
 
 inherit repository
 
+is_not_part_of_current_build[lockfiles] += "${REPO_ISAR_DIR}/isar-dpkg.lock"
 is_not_part_of_current_build() {
     local package="$( dpkg-deb --show --showformat '${Package}' "${1}" )"
     local arch="$( dpkg-deb --show --showformat '${Architecture}' "${1}" )"
@@ -37,6 +38,7 @@ debsrc_undo_mounts() {
 EOSUDO
 }
 
+debsrc_download[lockfiles] += "${REPO_ISAR_DIR}/isar-dpkg.lock"
 debsrc_download() {
     export rootfs="$1"
     export rootfs_distro="$2"
